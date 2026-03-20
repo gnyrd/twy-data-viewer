@@ -7,9 +7,9 @@
   },
   {
     "name": "Cancelled Subscribers",
-    "sql": "SELECT DISTINCT\n    c.full_name as name,\n    c.email,\n    p.product_name as product,\n    printf('$%.2f', p.amount_paid) as last_amount,\n    date(p.created) as last_payment,\n    p.is_stripe_subscription as stripe_sub_id,\n    CASE WHEN p.is_paused THEN 'Paused' ELSE 'Cancelled' END as status\nFROM purchases p\nJOIN customers c ON c.id = p.customer_id\nWHERE p.is_canceled = 1\n  AND p.recurring_type IS NOT NULL\nORDER BY p.created DESC",
+    "sql": "SELECT\n    c.full_name as name,\n    c.email,\n    p.product_name as product,\n    printf('$%.2f', p.amount_paid) as last_amount,\n    date(p.created) as last_payment,\n    p.is_stripe_subscription as stripe_sub_id,\n    CASE WHEN p.is_paused THEN 'Paused' ELSE 'Cancelled' END as status\nFROM (\n    SELECT *, ROW_NUMBER() OVER (PARTITION BY customer_id, product_id ORDER BY created DESC) as rn\n    FROM purchases\n    WHERE is_canceled = 1\n      AND recurring_type IS NOT NULL\n) p\nJOIN customers c ON c.id = p.customer_id\nWHERE p.rn = 1\nORDER BY p.created DESC",
     "created": "2026-03-20T16:15:00+00:00",
-    "updated": "2026-03-20T16:15:00+00:00"
+    "updated": "2026-03-20T17:32:50+00:00"
   },
   {
     "name": "Monthly Revenue",
