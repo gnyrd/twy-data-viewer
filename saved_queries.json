@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Active Subscribers",
+    "sql": "SELECT\n    s.full_name as name,\n    s.email,\n    pr.product_name as product,\n    printf('$%.2f', last_pay.amount_paid) as last_amount,\n    date(last_pay.created) as last_payment,\n    CAST(julianday('now') - julianday(last_pay.created) AS INTEGER) as days_ago,\n    printf('$%.2f', s.total_spend) as lifetime_spend,\n    date(s.first_purchase) as member_since,\n    CAST((julianday('now') - julianday(s.first_purchase)) / 30.44 AS INTEGER) as months_enrolled\nFROM subscriptions s\nJOIN products pr ON pr.id = s.product_id\nLEFT JOIN (\n    SELECT customer_id, product_id, amount_paid, created,\n           ROW_NUMBER() OVER (PARTITION BY customer_id, product_id ORDER BY created DESC) as rn\n    FROM purchases WHERE amount_paid > 0\n) last_pay ON last_pay.customer_id = s.customer_id AND last_pay.product_id = s.product_id AND last_pay.rn = 1\nWHERE s.subscription_active = 1\n  AND pr.product_name != 'The Yoga Lifestyle: On-demand Library'\nORDER BY last_pay.created DESC",
+    "created": "2026-03-20T15:40:00+00:00",
+    "updated": "2026-03-20T16:30:00+00:00"
+  },
+  {
+    "name": "Cancelled Subscribers",
+    "sql": "SELECT DISTINCT\n    c.full_name as name,\n    c.email,\n    p.product_name as product,\n    printf('$%.2f', p.amount_paid) as last_amount,\n    date(p.created) as last_payment,\n    p.is_stripe_subscription as stripe_sub_id,\n    CASE WHEN p.is_paused THEN 'Paused' ELSE 'Cancelled' END as status\nFROM purchases p\nJOIN customers c ON c.id = p.customer_id\nWHERE p.is_canceled = 1\n  AND p.recurring_type IS NOT NULL\nORDER BY p.created DESC",
+    "created": "2026-03-20T16:15:00+00:00",
+    "updated": "2026-03-20T16:15:00+00:00"
+  },
+  {
+    "name": "Monthly Revenue",
+    "sql": "SELECT\n    strftime('%Y-%m', created) as month,\n    COUNT(*) as transactions,\n    COUNT(DISTINCT customer_id) as customers,\n    printf('$%.2f', SUM(amount_paid)) as revenue,\n    printf('$%.2f', AVG(amount_paid)) as avg_amount\nFROM purchases\nWHERE amount_paid > 0\nGROUP BY month\nORDER BY month DESC",
+    "created": "2026-03-20T15:40:00+00:00",
+    "updated": "2026-03-20T15:40:00+00:00"
+  },
+  {
+    "name": "Revenue by Product",
+    "sql": "SELECT\n    product_name,\n    recurring_type,\n    COUNT(*) as transactions,\n    COUNT(DISTINCT customer_id) as customers,\n    printf('$%.2f', SUM(amount_paid)) as total_revenue,\n    printf('$%.2f', AVG(amount_paid)) as avg_payment\nFROM purchases\nWHERE amount_paid > 0\nGROUP BY product_id\nORDER BY SUM(amount_paid) DESC",
+    "created": "2026-03-20T15:40:00+00:00",
+    "updated": "2026-03-20T15:40:00+00:00"
+  },
+  {
+    "name": "Subscriber Price Tiers",
+    "sql": "SELECT\n    printf('$%.2f', last_pay.amount_paid) as monthly_rate,\n    COUNT(*) as subscribers,\n    GROUP_CONCAT(c.full_name, ', ') as names\nFROM product_students ps\nJOIN customers c ON c.id = ps.customer_id\nJOIN (\n    SELECT customer_id, product_id, amount_paid,\n           ROW_NUMBER() OVER (PARTITION BY customer_id, product_id ORDER BY created DESC) as rn\n    FROM purchases WHERE amount_paid > 0 AND product_id = 52025\n) last_pay ON last_pay.customer_id = ps.customer_id AND last_pay.product_id = ps.product_id AND last_pay.rn = 1\nWHERE ps.product_id = 52025\n  AND last_pay.amount_paid < 500\nGROUP BY last_pay.amount_paid\nORDER BY last_pay.amount_paid",
+    "created": "2026-03-20T15:40:00+00:00",
+    "updated": "2026-03-20T15:40:00+00:00"
+  },
+  {
+    "name": "Churn Timeline",
+    "sql": "SELECT\n    c.full_name as name,\n    c.email,\n    p.product_name as product,\n    printf('$%.2f', p.amount_paid) as last_amount,\n    date(p.created) as cancelled_payment,\n    p.is_stripe_subscription as stripe_sub\nFROM purchases p\nJOIN customers c ON c.id = p.customer_id\nWHERE p.is_canceled = 1\n  AND p.recurring_type IS NOT NULL\n  AND p.amount_paid > 0\nORDER BY p.created DESC",
+    "created": "2026-03-20T15:40:00+00:00",
+    "updated": "2026-03-20T16:15:00+00:00"
+  },
+  {
+    "name": "Purchase Details (Rich)",
+    "sql": "SELECT\n    c.full_name as name,\n    p.product_name,\n    printf('$%.2f', p.amount_paid) as amount,\n    date(p.created) as date,\n    p.is_canceled,\n    p.is_paused,\n    p.is_active,\n    p.trial,\n    p.new_order,\n    p.\"returning\",\n    p.is_stripe_subscription as stripe_sub,\n    p.expires_at\nFROM purchases p\nJOIN customers c ON c.id = p.customer_id\nWHERE p.amount_paid > 0\nORDER BY p.created DESC",
+    "created": "2026-03-20T16:15:00+00:00",
+    "updated": "2026-03-20T17:00:00+00:00"
+  }
+]
