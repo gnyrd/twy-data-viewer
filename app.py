@@ -4,6 +4,8 @@ import os
 import sys
 import json
 import sqlite3
+from twy_paths import load_env, marvy_db_path
+load_env()
 import subprocess
 import threading
 import time
@@ -16,7 +18,7 @@ from flask import Flask, request, jsonify, send_from_directory, session, redirec
 app = Flask(__name__, static_folder="static")
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "twy-data-viewer-secret-key")
 
-DB_PATH = os.environ.get("MARVY_DB_PATH", "/root/twy/data/marvy.db")
+DB_PATH = str(marvy_db_path())
 SYNC_SCRIPT = "/root/twy/marvy/scripts/sync.py"
 SYNC_PYTHON = "/root/twy/marvy/.venv/bin/python3"
 QUERIES_FILE = "/root/twy/data-viewer/saved_queries.json"
