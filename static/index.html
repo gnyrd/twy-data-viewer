@@ -34,16 +34,19 @@
   button.danger { color: var(--red); }
   button.danger:hover { border-color: var(--red); }
 
-  .editor-area { margin-bottom: 12px; overflow: hidden; transition: height 0.2s ease, margin 0.2s ease; }
-  .editor-area.collapsed { height: 0; margin-bottom: 0; }
+  .editor-toggle-bar { margin-bottom: 6px; }
+  .btn-toggle { font-size: 0.8em; padding: 4px 10px; color: var(--muted); border-color: transparent; background: none; }
+  .btn-toggle:hover { color: var(--text); border-color: var(--border); background: var(--surface); }
+
+  .editor-area { overflow: hidden; transition: max-height 0.2s ease, opacity 0.2s ease; max-height: 400px; opacity: 1; margin-bottom: 16px; }
+  .editor-area.collapsed { max-height: 0; opacity: 0; margin-bottom: 0; }
   textarea { width: 100%; height: 120px; background: var(--surface); color: var(--text);
              border: 1px solid var(--border); border-radius: 6px; padding: 12px;
              font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.9em;
-             resize: vertical; outline: none; }
+             resize: vertical; outline: none; margin-bottom: 8px; }
   textarea:focus { border-color: var(--accent); }
 
-  .query-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
-  .btn-toggle { font-size: 0.7em; padding: 6px 8px; line-height: 1; }
+  .query-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
   .status { font-size: 0.85em; color: var(--muted); margin-left: 8px; }
   .status.error { color: var(--red); }
@@ -123,22 +126,24 @@
   </div>
   <div class="toolbar">
     <button id="btnSync" onclick="triggerSync()">Refresh Data</button>
+  </div>
+</div>
+
+<div class="editor-toggle-bar">
+  <button class="btn-toggle" id="btnToggle" onclick="toggleEditor()" title="Collapse query editor">&#9650; Query</button>
+</div>
+
+<div class="editor-area" id="editorArea">
+  <textarea id="sql" placeholder="SELECT * FROM customers LIMIT 10" spellcheck="false"></textarea>
+  <div class="query-bar">
+    <button class="primary" onclick="runQuery()">Run Query</button>
+    <button onclick="openSaveModal()">Save Query</button>
     <button id="btnSchema" onclick="toggleSchema()">Schema</button>
+    <span class="status" id="queryStatus"></span>
   </div>
 </div>
 
 <div class="schema-panel" id="schemaPanel"></div>
-
-<div class="editor-area" id="editorArea">
-  <textarea id="sql" placeholder="SELECT * FROM customers LIMIT 10" spellcheck="false"></textarea>
-</div>
-
-<div class="query-bar">
-  <button class="btn-toggle" id="btnToggle" onclick="toggleEditor()" title="Collapse query editor">&#9650;</button>
-  <button class="primary" onclick="runQuery()">Run Query</button>
-  <button onclick="openSaveModal()">Save Query</button>
-  <span class="status" id="queryStatus"></span>
-</div>
 
 <div class="saved-queries" id="savedQueries"></div>
 
