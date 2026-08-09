@@ -299,4 +299,7 @@ def delete_query(name):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5007, debug=True)
+    # 127.0.0.1 only: nginx terminates TLS and fronts this at
+    # data.tiffanywoodyoga.com. The box has no firewall, so a 0.0.0.0 bind
+    # would expose the debugger and the login straight to the internet.
+    app.run(host="127.0.0.1", port=5007, debug=True, use_reloader=True)
