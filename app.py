@@ -16,6 +16,8 @@ from pathlib import Path
 from flask import Flask, request, jsonify, send_from_directory, session, redirect, url_for, Response
 
 app = Flask(__name__, static_folder="static")
+from twy_platform import device_id
+device_id.install(app)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "twy-data-viewer-secret-key")
 
 DB_PATH = str(marvy_db_path())
@@ -115,6 +117,7 @@ def login():
         password = request.form.get("password", "")
         if os.getenv("DASHBOARD_PASS") and password == os.getenv("DASHBOARD_PASS"):
             session["logged_in"] = True
+            device_id.record("login")
             return redirect(url_for("index"))
         return Response(
             LOGIN_PAGE.replace("{error}", '<div class="error">Invalid password</div>'),
